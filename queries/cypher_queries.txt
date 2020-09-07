@@ -1,0 +1,31 @@
+Graph Construction in Neo4j
+The data is imported from csv file into Neo4j. The graph is created in neo4j using cypher query language. 
+Following are the queries I have used for creating a graph.
+•	Cypher query for creating nodes
+LOAD CSV WITH HEADERS FROM 'file:///parkData.csv' AS row
+MERGE (p:Parks {ParkName: row.ParkName})
+ON CREATE SET p.partySize = toInteger(row.partySize), p.RateType = row.RateType, p.BookingType = row.BookingType, p.Equipment =row.Equipment
+
+•	Cypher query for creating relationship “belongs_to_NS”
+LOAD CSV WITH HEADERS FROM 'file:///parkData.csv' AS row
+MATCH (p1.Parks),(p2:Parks)
+Where(p1.ParkName<>p2.ParkName)
+MERGE(p1)-[r:belongs_To_NS]-(p2)
+
+•	Cypher query for creating relationship “NeghbourByEquipment”
+LOAD CSV WITH HEADERS FROM 'file:///parkData.csv' AS row
+MATCH (p1.Parks),(p2:Parks)
+Where(p1.ParkName<>p2.ParkName) AND (p1.Equipment = p2.Equipment)
+MERGE(p1)-[r: NeghbourByEquipment {Equipment: p1.Equipment}]-(p2)
+
+•	Cypher query for creating relationship “NeghbourByRate”
+LOAD CSV WITH HEADERS FROM 'file:///parkData.csv' AS row
+MATCH (p1.Parks),(p2:Parks)
+Where(p1.ParkName<>p2.ParkName) AND (p1.RateType = p2.RateType)
+MERGE(p1)-[r: NeghbourByRate {RateType: p1. RateType }]-(p2)
+
+•	Cypher query for extracting park with maximum party size
+MATCH (p1:Parks)
+WITH max(p1.partySize) as maxVal
+MATCH (p2:Parks) WHERE p2.partySize = maxVal
+RETURN p2
